@@ -85,5 +85,8 @@
   "workspaces": [
     "packages/*",
     "utils/*"
-  ]
+  ],
+  "resolutions": {
+    "browserslist": "4.9.1"
+  }
 }
