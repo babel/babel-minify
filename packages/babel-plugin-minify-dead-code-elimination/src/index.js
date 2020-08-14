@@ -132,7 +132,15 @@ module.exports = ({ types: t, traverse }) => {
 
       enter(path) {
         if (path.isProgram()) {
-          return;
+          if (path.node.sourceType !== "module") {
+            return;
+          } else {
+            const { globals } = path.scope;
+            if (globals.module || globals.exports) {
+              // CommonJS module, do not try to optimize top level
+              return;
+            }
+          }
         }
 
         if (hasEval(path.scope)) {
@@ -319,6 +327,13 @@ module.exports = ({ types: t, traverse }) => {
               let isReferencedBefore = false;
 
               const refPath = binding.referencePaths[0];
+
+              if (
+                refPath.isExportNamedDeclaration() ||
+                refPath.parentPath.isExportSpecifier()
+              ) {
+                continue;
+              }
 
               if (t.isVariableDeclarator(replacement)) {
                 const _prevSiblings = prevSiblings(replacementPath);
@@ -847,6 +862,8 @@ module.exports = ({ types: t, traverse }) => {
     }
   };
 
+  const { enter: enterScope, exit: exitScope } = main.Scope;
+
   return {
     name: "minify-dead-code-elimination",
     visitor: {
@@ -952,6 +969,9 @@ module.exports = ({ types: t, traverse }) => {
       },
 
       Program: {
+        enter(path) {
+          enterScope(path);
+        },
         exit(
           path,
           {
@@ -969,6 +989,8 @@ module.exports = ({ types: t, traverse }) => {
           path.scope.crawl();
 
           markEvalScopes(path);
+
+          exitScope(path);
 
           // We need to run this plugin in isolation.
           path.traverse(main, {

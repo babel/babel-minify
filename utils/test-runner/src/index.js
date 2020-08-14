@@ -39,6 +39,10 @@ function testRunner(dir) {
 
   describe(pkgName, () => {
     for (const fixture of fixtures) {
+      if (flags["focus"] && flags["focus"] !== fixture) {
+        continue;
+      }
+
       const actualFile = pathJoin(fixturesDir, fixture, "actual.js");
       const expectedFile = pathJoin(fixturesDir, fixture, "expected.js");
       const skipFile = pathJoin(fixturesDir, fixture, "skip");
