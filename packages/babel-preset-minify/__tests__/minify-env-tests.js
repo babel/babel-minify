@@ -212,10 +212,10 @@ describe("preset along with env", () => {
     `,
     `
       function foo() {
-        var b = console;
+        var a = console;
         return {
-          a: function d(c) {
-            b.log(c);
+          a: function a(b) {
+            a.log(b);
           }
         };
       }

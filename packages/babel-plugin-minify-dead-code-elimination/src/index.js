@@ -421,7 +421,8 @@ module.exports = ({ types: t, traverse }) => {
               const isObj = n =>
                 t.isFunction(n) ||
                 t.isObjectExpression(n) ||
-                t.isArrayExpression(n);
+                t.isArrayExpression(n) ||
+                t.isRegExpLiteral(n);
 
               const isReplacementObj =
                 isObj(replacement) || some(replacement, isObj);
