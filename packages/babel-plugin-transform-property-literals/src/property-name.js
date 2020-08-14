@@ -34,6 +34,9 @@ limitations under the License.
 
  */
 function reduceStaticPropertyNameES5(t, node) {
+  if (keyword.isReservedWordES5(node.value)) {  
+    return t.Identifier(escapeStringLiteral(node.value));
+  }
   if (keyword.isIdentifierNameES5(node.value)) {
     return t.Identifier(node.value);
   }
