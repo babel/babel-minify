@@ -847,6 +847,21 @@ module.exports = ({ types: t, traverse }) => {
     }
   };
 
+  function removeSubsequentSiblings(path) {
+    const siblings = [];
+    for (let i = path.key; i < path.container.length; i++) {
+      siblings.push(path.getSibling(i + 1));
+    }
+    siblings.filter(s => !t.isFunctionDeclaration(s)).forEach(sibling => {
+      const vars = extractVars(sibling);
+      if (vars.length) {
+        sibling.replaceWithMultiple(...vars);
+      } else {
+        sibling.remove();
+      }
+    });
+  }
+
   return {
     name: "minify-dead-code-elimination",
     visitor: {
@@ -879,12 +894,27 @@ module.exports = ({ types: t, traverse }) => {
           }
 
           // we can check if a test will be truthy 100% and if so then we can inline
-          // the consequent and completely ignore the alternate
+          // the consequent, completely ignore the alternate and remove subsequent nodes
           //
           //   if (true) { foo; } -> { foo; }
           //   if ("foo") { foo; } -> { foo; }
           //
           if (evalResult.confident && evalResult.value) {
+            const consequentBody = consequent.get("body");
+            const consequentHasReturnStatement = Array.isArray(consequentBody)
+              ? consequentBody.some(t.isReturnStatement)
+              : false;
+
+            if (consequentHasReturnStatement) {
+              consequent.traverse({
+                ReturnStatement(returnPath) {
+                  removeSubsequentSiblings(returnPath);
+                }
+              });
+
+              removeSubsequentSiblings(path);
+            }
+
             path.replaceWithMultiple([
               ...replacements,
               ...toStatements(consequent),
@@ -894,13 +924,28 @@ module.exports = ({ types: t, traverse }) => {
           }
 
           // we can check if a test will be falsy 100% and if so we can inline the
-          // alternate if there is one and completely remove the consequent
+          // alternate if there is one, completely remove the consequent and remove subsequent nodes
           //
           //   if ("") { bar; } else { foo; } -> { foo; }
           //   if ("") { bar; } ->
           //
           if (evalResult.confident && !evalResult.value) {
             if (alternate.node) {
+              const alternateBody = alternate.get("body");
+              const alternateHasReturnStatement = Array.isArray(alternateBody)
+                ? alternateBody.some(t.isReturnStatement)
+                : false;
+
+              if (alternateHasReturnStatement) {
+                alternate.traverse({
+                  ReturnStatement(returnPath) {
+                    removeSubsequentSiblings(returnPath);
+                  }
+                });
+
+                removeSubsequentSiblings(path);
+              }
+
               path.replaceWithMultiple([
                 ...replacements,
                 ...toStatements(alternate),
