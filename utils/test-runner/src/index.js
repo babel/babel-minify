@@ -94,7 +94,7 @@ function testRunner(dir) {
           }
         } else {
           const expected = await fs.readFile(expectedFile);
-          expect(actualTransformed).toBe(expected);
+          expect(actualTransformed.trim()).toBe(expected.trim());
         }
       });
     }

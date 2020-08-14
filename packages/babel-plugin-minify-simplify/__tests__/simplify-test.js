@@ -222,8 +222,8 @@ describe("simplify-plugin", () => {
     x = x ** 1;
   `,
     `
-    ++x;
-    --x;
+    x += 1;
+    x -= 1;
     x *= 1;
     x %= 1;
     x <<= 1;
@@ -308,6 +308,7 @@ describe("simplify-plugin", () => {
     foo = foo * function(){};
     foo += 123;
     foo = 1 + foo;
+    x = 'hi';
     x = x = x + 1;
     foo = foo + bar + baz;
   `,
@@ -316,7 +317,8 @@ describe("simplify-plugin", () => {
     foo *= function () {};
     foo += 123;
     foo = 1 + foo;
-    x = ++x;
+    x = 'hi';
+    x = x += 1;
     foo = foo + bar + baz;
   `
   );
@@ -344,9 +346,11 @@ describe("simplify-plugin", () => {
     foo[null] = foo[null] + 1;
     foo[undefined] = foo[undefined] + 1;
     foo.bar = foo.bar || {};
+    bar.baz = foo.bar.baz + 'x';
+    foo.bar.baz = bar.baz + 'x';
   `,
     `
-    ++foo.bar;
+    foo.bar += 1;
     foo.bar += 2;
     foo["x"] = foo[x] + 2;
     foo[x] += 2;
@@ -359,12 +363,14 @@ describe("simplify-plugin", () => {
     foo[2] += 2;
     foo[{}] = foo[{}] + 1;
     foo[function () {}] = foo[function () {}] + 1;
-    ++foo[false];
+    foo[false] += 1;
     foo.bar.baz += 321;
-    ++this.hello;
-    ++foo[null];
-    ++foo[undefined];
+    this.hello += 1;
+    foo[null] += 1;
+    foo[undefined] += 1;
     foo.bar = foo.bar || {};
+    bar.baz = foo.bar.baz + 'x';
+    foo.bar.baz = bar.baz + 'x';
   `
   );
 });

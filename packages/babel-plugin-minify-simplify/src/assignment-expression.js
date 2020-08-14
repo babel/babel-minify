@@ -15,8 +15,6 @@ const operators = new Set([
   "**"
 ]);
 
-const updateOperators = new Set(["+", "-"]);
-
 module.exports = t => {
   function simplify(path) {
     const rightExpr = path.get("right");
@@ -25,11 +23,6 @@ module.exports = t => {
     if (path.node.operator !== "=") {
       return;
     }
-
-    const canBeUpdateExpression =
-      rightExpr.get("right").isNumericLiteral() &&
-      rightExpr.get("right").node.value === 1 &&
-      updateOperators.has(rightExpr.node.operator);
 
     if (leftExpr.isMemberExpression()) {
       const leftPropNames = getPropNames(leftExpr);
@@ -55,22 +48,11 @@ module.exports = t => {
       }
     }
 
-    let newExpression;
-
-    // special case x=x+1 --> ++x
-    if (canBeUpdateExpression) {
-      newExpression = t.updateExpression(
-        rightExpr.node.operator + rightExpr.node.operator,
-        t.clone(leftExpr.node),
-        true /* prefix */
-      );
-    } else {
-      newExpression = t.assignmentExpression(
-        rightExpr.node.operator + "=",
-        t.clone(leftExpr.node),
-        t.clone(rightExpr.node.right)
-      );
-    }
+    let newExpression = t.assignmentExpression(
+      rightExpr.node.operator + "=",
+      t.clone(leftExpr.node),
+      t.clone(rightExpr.node.right)
+    );
 
     path.replaceWith(newExpression);
   }
@@ -81,9 +63,12 @@ module.exports = t => {
 };
 
 function areArraysEqual(arr1, arr2) {
-  return arr1.every((value, index) => {
-    return String(value) === String(arr2[index]);
-  });
+  return (
+    arr1.length === arr2.length &&
+    arr1.every((value, index) => {
+      return String(value) === String(arr2[index]);
+    })
+  );
 }
 
 function getPropNames(path) {
