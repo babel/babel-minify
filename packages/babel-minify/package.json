@@ -24,6 +24,6 @@
     "lodash": "^4.17.11",
     "mkdirp": "^0.5.1",
     "util.promisify": "^1.0.0",
-    "yargs-parser": "^10.0.0"
+    "yargs-parser": "^13.1.2"
   }
 }
