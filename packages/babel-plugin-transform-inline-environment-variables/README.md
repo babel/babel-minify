@@ -41,6 +41,9 @@ npm install babel-plugin-transform-inline-environment-variables --save-dev
     ["transform-inline-environment-variables", {
       "include": [
         "NODE_ENV"
+      ],
+      "required": [
+        "NODE_ENV"
       ]
     }]
   ]
@@ -65,3 +68,6 @@ require("@babel/core").transform("code", {
 
 + `include` - array of environment variables to include
 + `exclude` - array of environment variables to exclude
++ `required` - 
+   - `array` - array of environment variables that are required. Will fail if they dont exists. 
+   - `boolean` - **true** (all are required), **false** (none are required)
